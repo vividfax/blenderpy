@@ -14,8 +14,7 @@ def setup():
     bpy.ops.object.light_add(type='SUN', location=(0, 0, 10))
     bpy.context.object.data.energy = 10
     bpy.ops.object.camera_add(location=(0, 0, 12), rotation=(0, 0, 0))
-    bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (
-        1, 1, 1, 1)
+    bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (1,1,1, 1)
 
 
 def draw():
@@ -28,22 +27,20 @@ def drawBackground():
 
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
-    output = nodes.new(type='ShaderNodeOutputMaterial')
+    output = nodes.new( type = 'ShaderNodeOutputMaterial' )
 
-    emission = nodes.new(type='ShaderNodeEmission')
-    mat.node_tree.nodes["Emission"].inputs[0].default_value = (
-        0.0231534, 0.031896, 0.0703601, 1)
+    emission = nodes.new( type = 'ShaderNodeEmission' )
+    mat.node_tree.nodes["Emission"].inputs[0].default_value = (0.0231534, 0.031896, 0.0703601, 1)
     mat.node_tree.nodes["Emission"].inputs[1].default_value = 1
-    link = links.new(emission.outputs['Emission'], output.inputs['Surface'])
+    link = links.new( emission.outputs['Emission'], output.inputs['Surface'] )
 
-    bpy.ops.mesh.primitive_plane_add(
-        size=300, enter_editmode=False, align='WORLD', location=(0, 0, 0))
+    bpy.ops.mesh.primitive_plane_add(size=300, enter_editmode=False, align='WORLD', location=(0, 0, 0))
 
     bpy.context.active_object.data.materials.append(mat)
 
 
 def drawSpheres():
-    for x in range(-4, 5):
+    for x in range (-4, 5):
         for y in range(-4, 5):
 
             r = random()
@@ -54,33 +51,30 @@ def drawSpheres():
 
             nodes = mat.node_tree.nodes
             links = mat.node_tree.links
-            output = nodes.new(type='ShaderNodeOutputMaterial')
+            output = nodes.new( type = 'ShaderNodeOutputMaterial' )
 
-            mix = nodes.new(type='ShaderNodeMixShader')
+            mix = nodes.new( type = 'ShaderNodeMixShader' )
 
-            diffuse = nodes.new(type='ShaderNodeBsdfDiffuse')
-            mat.node_tree.nodes["Diffuse BSDF"].inputs[0].default_value = (
-                r, g, b, 1)
-            link = links.new(diffuse.outputs[0], mix.inputs[1])
+            diffuse = nodes.new( type = 'ShaderNodeBsdfDiffuse' )
+            mat.node_tree.nodes["Diffuse BSDF"].inputs[0].default_value = (r, g, b, 1)
+            link = links.new( diffuse.outputs[0], mix.inputs[1] )
 
-            velvet = nodes.new(type='ShaderNodeBsdfVelvet')
-            mat.node_tree.nodes["Velvet BSDF"].inputs[0].default_value = (
-                r, g, b, 1)
-            link = links.new(velvet.outputs[0], mix.inputs[2])
+            velvet = nodes.new( type = 'ShaderNodeBsdfVelvet' )
+            mat.node_tree.nodes["Velvet BSDF"].inputs[0].default_value = (r, g, b, 1)
+            link = links.new( velvet.outputs[0], mix.inputs[2] )
 
-            link = links.new(mix.outputs[0], output.inputs[0])
+            link = links.new( mix.outputs[0], output.inputs[0] )
 
             rad = 1
-            obj = bpy.ops.mesh.primitive_uv_sphere_add(
-                radius=rad, location=(x, y, 0))
+            obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=rad, location=(x, y, 0))
 
             bpy.ops.object.modifier_add(type='SUBSURF')
             bpy.context.object.modifiers["Subdivision"].render_levels = 3
 
             bpy.context.active_object.data.materials.append(mat)
 
-            obj = bpy.ops.mesh.primitive_uv_sphere_add(
-                radius=rad/4, location=(x, y, 1))
+
+            obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=rad/2, location=(x-.5, y-.5, 1))
 
             bpy.ops.object.modifier_add(type='SUBSURF')
             bpy.context.object.modifiers["Subdivision"].render_levels = 3
