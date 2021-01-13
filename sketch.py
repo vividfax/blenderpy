@@ -15,64 +15,50 @@ def setup():
 
     bpy.ops.object.light_add(type='SUN', location=(0, 0, 10))
     bpy.context.object.data.energy = 10
-    bpy.ops.object.camera_add(location=(0, 0, 100), rotation=(0, 0, 0))
+    bpy.ops.object.camera_add(location=(0, 0, 35), rotation=(0, 0, 0))
     bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (1,1,1, 1)
 
 
 def draw():
     drawBackground()
+    drawShape()
 #    drawGrid()
-    drawCirclePack()
+#    drawCirclePack()
 
 
 def drawBackground():
-    mat = newEmission("Plane", 0.050657, 0.194388, 0.219788)
+    mat = newGlossy("Plane", 0.114435, 0.0703601, 0.467784)
 
     bpy.ops.mesh.primitive_plane_add(size=300, align='WORLD', location=(0, 0, 0))
 
     bpy.context.active_object.data.materials.append(mat)
 
 
-class Circle:
+def drawShape():
+    mat = newVelvet("Shape", 0.368751, 1, 0.41728)
 
-    def __init__(self, x_,y_):
-        self.x = x_
-        self.y = y_
-        self.r = 5
+    r = 1
+    x = 0
+    y = 0
 
-    def draw(self):
-        mat = newDiffuse(str(self.x) + "o" + str(self.y), 1/self.r/2, .5, .5)
+    obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=(x, y, 0))
 
-        obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=self.r, location=(self.x, self.y, 0))
-        bpy.ops.object.modifier_add(type='SUBSURF')
-        bpy.context.object.modifiers["Subdivision"].render_levels = 3
+    vertices = bpy.context.active_object.data.vertices
 
-        bpy.context.active_object.data.materials.append(mat)
+    for v in vertices:
+        new = v.co
+        new[0] = new[0]+randrange(-10,10)
+        new[1] = new[1]+randrange(-10,10)
+        new[2] = new[2]+randrange(-10,10)
+        v.co = new
 
-    def shrink(self):
-        self.r = self.r -.5
+    bpy.ops.object.modifier_add(type='SMOOTH')
 
+    bpy.ops.object.modifier_add(type='SUBSURF')
+    bpy.context.object.modifiers["Subdivision"].render_levels = 5
 
-def drawCirclePack():
+    bpy.context.active_object.data.materials.append(mat)
 
-#    for i in range(-40, 40):
-#        for j in range(-40, 40):
-#            mat = newDiffuse(str(i) + "o" + str(j), .5, .5, .5)
-
-    circles = list()
-    for i in range(0,10000):
-        x = randrange(-40, 40)
-        y = randrange(-40, 40)
-        circle = Circle(x,y)
-        for c in circles:
-            d1 = (x, y)
-            d2 = (c.x, c.y)
-            distance = math.sqrt( ((d1[0]-d2[0])**2)+((d1[1]-d2[1])**2) )
-            while distance < c.r + circle.r:
-                circle.shrink()
-        if circle.r > 0:
-            circle.draw()
-        circles.append(circle)
 
 
 def drawGrid():
@@ -96,6 +82,44 @@ def drawGrid():
             bpy.context.object.modifiers["Subdivision"].render_levels = 3
 
             bpy.context.active_object.data.materials.append(mat)
+
+
+class Circle:
+
+    def __init__(self, x_,y_):
+        self.x = x_
+        self.y = y_
+        self.r = 10
+
+    def draw(self):
+        mat = newDiffuse(str(self.x) + "o" + str(self.y), 1/self.r/2, .5, .5)
+
+        obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=self.r, location=(self.x, self.y, 0))
+        bpy.ops.object.modifier_add(type='SUBSURF')
+        bpy.context.object.modifiers["Subdivision"].render_levels = 3
+
+        bpy.context.active_object.data.materials.append(mat)
+
+    def shrink(self):
+        self.r = self.r -.1
+
+
+def drawCirclePack():
+
+    circles = list()
+    for i in range(0,100):
+        x = randrange(-40, 40)
+        y = randrange(-40, 40)
+        circle = Circle(x,y)
+        for c in circles:
+            d1 = (x, y)
+            d2 = (c.x, c.y)
+            distance = math.sqrt( ((d1[0]-d2[0])**2)+((d1[1]-d2[1])**2) )
+            while distance < c.r + circle.r:
+                circle.shrink()
+        if circle.r > 0:
+            circle.draw()
+        circles.append(circle)
 
 
 def newEmission(str, r, g, b):
@@ -148,6 +172,20 @@ def newVelvet(str, r, g, b):
 
     return mat
 
+
+def newGlossy(str, r, g, b):
+    mat = newMat(str)
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    output = nodes.new( type = 'ShaderNodeOutputMaterial' )
+
+    glossy = nodes.new( type = 'ShaderNodeBsdfGlossy' )
+    mat.node_tree.nodes["Glossy BSDF"].inputs[0].default_value = (r, g, b, 1)
+    mat.node_tree.nodes["Glossy BSDF"].inputs[1].default_value = 0
+    link = links.new( glossy.outputs[0], output.inputs[0] )
+
+    return mat
 
 def newMat(str):
     mat = bpy.data.materials.get(str)
