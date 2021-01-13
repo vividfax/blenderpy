@@ -15,73 +15,68 @@ def setup():
 
     bpy.ops.object.light_add(type='SUN', location=(0, 0, 10))
     bpy.context.object.data.energy = 10
-    bpy.ops.object.camera_add(location=(0, 0, 35), rotation=(0, 0, 0))
+    bpy.ops.object.camera_add(location=(0, 0, 20), rotation=(0, 0, 0))
     bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (1,1,1, 1)
 
 
 def draw():
     drawBackground()
-    drawShape()
+    drawShape(0, 0)
 #    drawGrid()
 #    drawCirclePack()
 
 
 def drawBackground():
-    mat = newGlossy("Plane", 0.114435, 0.0703601, 0.467784)
+    mat = newGlossy("Plane", 1,1,1)
 
     bpy.ops.mesh.primitive_plane_add(size=300, align='WORLD', location=(0, 0, 0))
 
     bpy.context.active_object.data.materials.append(mat)
 
 
-def drawShape():
-    mat = newVelvet("Shape", 0.368751, 1, 0.41728)
+def drawShape(x, y):
 
-    r = 1
-    x = 0
-    y = 0
+    bpy.ops.image.open(filepath="//output/circlepacking3.png", directory="/Users/riannasuen/Desktop/inventory/blenderpy/output/", files=[{"name":"circlepacking3.png", "name":"circlepacking3.png"}], show_multiview=False)
 
-    obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=(x, y, 0))
+    size = 1
 
-    vertices = bpy.context.active_object.data.vertices
+    for i in range(0, 80):
 
-    for v in vertices:
-        new = v.co
-        new[0] = new[0]+randrange(-10,10)
-        new[1] = new[1]+randrange(-10,10)
-        new[2] = new[2]+randrange(-10,10)
-        v.co = new
+        vector = mathutils.Vector((x, y, i))
+        size = mathutils.noise.cell(vector)
 
-    bpy.ops.object.modifier_add(type='SMOOTH')
+        mat = newDiffuse("Shape", random(), random(), random())
 
-    bpy.ops.object.modifier_add(type='SUBSURF')
-    bpy.context.object.modifiers["Subdivision"].render_levels = 5
+        bpy.ops.mesh.primitive_torus_add(align='WORLD', location=(x*3, y*3, i/30), rotation=(0, 0, 0), major_radius=size, minor_radius=size/4, abso_major_rad=1.25, abso_minor_rad=0.75)
+        bpy.context.active_object.data.materials.append(mat)
+
+        bpy.ops.object.modifier_add(type='SIMPLE_DEFORM')
+
+#    bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=(x, y, 0))
+
+#    vertices = bpy.context.active_object.data.vertices
+#
+#    for v in vertices:
+#        new = v.co
+#        new[0] = new[0] + random()
+#        new[1] = new[1] + random()
+#        new[2] = new[2] + random()
+#        v.co = new
+
+#    bpy.ops.object.modifier_add(type='SMOOTH')
+
+#    bpy.ops.object.modifier_add(type='SUBSURF')
+#    bpy.context.object.modifiers["Subdivision"].render_levels = 5
 
     bpy.context.active_object.data.materials.append(mat)
 
 
 
 def drawGrid():
-    for x in range (-9, 10):
-        for y in range(-9, 10):
+    for x in range (-4, 5):
+        for y in range(-4, 5):
+            drawShape(x, y)
 
-            r = 1/(x+10)
-            g = 1/(y+10)
-            b = 0.5
-
-            mat = newEmission("Item" + str(x) + "o" + str(y), r, g, b)
-
-            vector = mathutils.Vector((x, y, 1))
-            size = mathutils.noise.cell(vector)+1
-            z = random()
-
-#            bpy.ops.mesh.primitive_plane_add(size=size, align='WORLD', location=(x, y, z))
-
-            obj = bpy.ops.mesh.primitive_uv_sphere_add(radius=size, location=(x, y, z))
-            bpy.ops.object.modifier_add(type='SUBSURF')
-            bpy.context.object.modifiers["Subdivision"].render_levels = 3
-
-            bpy.context.active_object.data.materials.append(mat)
 
 
 class Circle:
